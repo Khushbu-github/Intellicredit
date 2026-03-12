@@ -4,7 +4,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"
+      - "8001:8000"
     volumes:
       - ./files:/app/files
     environment:
@@ -13,4 +13,6 @@ services:
   frontend: 
     build: ./frontend
     ports:
-      - "80:80"
+      - "3000:80"
+    environment:
+      - VITE_API_URL=/api
