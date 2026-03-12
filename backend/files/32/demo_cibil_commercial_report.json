@@ -1,0 +1,21 @@
+{
+    "company_name": "ABC Tech Pvt Ltd",
+    "cibil_score": 742,
+    "credit_rating": "A",
+    "total_loans": 2,
+    "outstanding_amount": 1800000,
+    "loan_history": [
+        {
+            "bank": "National Business Bank",
+            "loan_amount": 2500000,
+            "status": "Active"
+        },
+        {
+            "bank": "Metro Finance Ltd",
+            "loan_amount": 800000,
+            "status": "Closed"
+        }
+    ],
+    "defaults": 0,
+    "report_note": "Demo credit report generated for testing purposes"
+}
