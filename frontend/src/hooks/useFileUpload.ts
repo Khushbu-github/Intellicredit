@@ -1,32 +1,20 @@
-import { useState } from 'react';
+/**
+ * Thin adapter so UploadZone keeps its existing shape while the request and
+ * its cache invalidation are owned by the query layer.
+ */
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001/api';
+import { useUploadDocuments } from './queries';
+import type { UploadResult } from '../lib/api';
+
+export type { IngestedFile, UploadResult } from '../lib/api';
 
 export const useFileUpload = (appId: number | null) => {
-    const [isUploading, setIsUploading] = useState(false);
+    const upload = useUploadDocuments(appId);
 
-    const uploadFiles = async (files: FileList) => {
-        if (!appId) return;
-        setIsUploading(true);
-        const formData = new FormData();
-        Array.from(files).forEach(file => {
-            formData.append('files', file);
-        });
-
-        const res = await fetch(`${BASE_URL}/${appId}/upload`, {
-            method: 'POST',
-            body: formData,
-        });
-
-        if (!res.ok) {
-            const errorText = await res.text();
-            setIsUploading(false);
-            throw new Error(`Upload failed: ${res.status} ${res.statusText} - ${errorText}`);
-        }
-
-        setIsUploading(false);
-        return res.json();
+    const uploadFiles = async (files: File[]): Promise<UploadResult | undefined> => {
+        if (!appId || files.length === 0) return undefined;
+        return upload.mutateAsync(files);
     };
 
-    return { uploadFiles, isUploading };
+    return { uploadFiles, isUploading: upload.isPending };
 };

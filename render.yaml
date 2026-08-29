@@ -1,0 +1,24 @@
+# Render blueprint. The service can also be configured by hand in the
+# dashboard; this file makes the deployment reproducible and reviewable.
+services:
+  - type: web
+    name: intellicredit-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      # Generated once by Render and then held; rotating it invalidates every
+      # outstanding session token.
+      - key: SECRET_KEY
+        generateValue: true
+      # Set in the dashboard - the Supabase pooled connection string and the
+      # Anthropic key are secrets and must not live in the repository.
+      - key: DATABASE_URL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false

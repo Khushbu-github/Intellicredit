@@ -2,40 +2,327 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   Design tokens
+   Light is the base palette; dark is a selected set of steps,
+   declared under both the OS media query and the explicit
+   [data-theme] stamp so the in-app toggle wins either way.
+   ============================================================ */
 :root {
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.3);
+  color-scheme: light;
+
+  --canvas: #f4f6f9;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #eef1f6;
+
+  --border: #e3e7ee;
+  --border-strong: #cbd3df;
+
+  --ink: #0d1626;
+  --ink-2: #55617a;
+  --ink-3: #6b7688;
+
+  --accent: #2a78d6;
+  --accent-ink: #1c5cab;
+  --accent-wash: #eaf2fd;
+
+  /* Navigation rail */
+  --rail: #0d1626;
+  --rail-2: #16223a;
+  --rail-ink: #ffffff;
+  --rail-ink-2: #9aa8c0;
+  --rail-line: #24314c;
+
+  /* Status palette - fixed across modes, always paired with icon + label */
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+
+  /* Status washes + readable ink for status surfaces */
+  --good-wash: #e8f6e8;
+  --good-ink: #146c14;
+  --warning-wash: #fdf3dd;
+  --warning-ink: #8a5d00;
+  --serious-wash: #fdeee7;
+  --serious-ink: #9c4a24;
+  --critical-wash: #fbeaea;
+  --critical-ink: #a12626;
+
+  --grid: #e9edf3;
+
+  --shadow-xs: 0 1px 2px rgba(13, 22, 38, .05);
+  --shadow-sm: 0 1px 3px rgba(13, 22, 38, .06), 0 1px 2px rgba(13, 22, 38, .04);
+  --shadow-md: 0 4px 12px rgba(13, 22, 38, .07), 0 1px 3px rgba(13, 22, 38, .05);
+  --shadow-lg: 0 12px 32px rgba(13, 22, 38, .10), 0 2px 6px rgba(13, 22, 38, .05);
+  --shadow-pop: 0 16px 44px rgba(13, 22, 38, .16);
 }
 
-body {
-  @apply bg-premium-light text-slate-900 min-h-screen font-sans;
-  background: linear-gradient(135deg, #f0f4ff 0%, #dbeafe 100%);
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --canvas: #0a0e15;
+    --surface: #121826;
+    --surface-2: #161d2d;
+    --surface-3: #1c2434;
+
+    --border: #232c3d;
+    --border-strong: #35415a;
+
+    --ink: #e9eef8;
+    --ink-2: #9aa7bd;
+    --ink-3: #8a97ae;
+
+    --accent: #3987e5;
+    --accent-ink: #7fb0f0;
+    --accent-wash: #16233a;
+
+    --rail: #0c111c;
+    --rail-2: #141d2e;
+    --rail-ink: #ffffff;
+    --rail-ink-2: #8c99b1;
+    --rail-line: #1f2a3d;
+
+    --good-wash: #102915;
+    --good-ink: #62d162;
+    --warning-wash: #2c2312;
+    --warning-ink: #f3c257;
+    --serious-wash: #2e1d15;
+    --serious-ink: #f0a583;
+    --critical-wash: #2e1618;
+    --critical-ink: #f08b8b;
+
+    --grid: #212a3a;
+
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, .4);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, .45), 0 1px 2px rgba(0, 0, 0, .3);
+    --shadow-md: 0 4px 14px rgba(0, 0, 0, .5), 0 1px 3px rgba(0, 0, 0, .35);
+    --shadow-lg: 0 14px 34px rgba(0, 0, 0, .6), 0 2px 6px rgba(0, 0, 0, .4);
+    --shadow-pop: 0 18px 48px rgba(0, 0, 0, .7);
+  }
 }
 
-.glass-card {
-  @apply backdrop-blur-md bg-white/70 border border-white/30 rounded-2xl shadow-xl;
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --canvas: #0a0e15;
+  --surface: #121826;
+  --surface-2: #161d2d;
+  --surface-3: #1c2434;
+
+  --border: #232c3d;
+  --border-strong: #35415a;
+
+  --ink: #e9eef8;
+  --ink-2: #9aa7bd;
+  --ink-3: #8a97ae;
+
+  --accent: #3987e5;
+  --accent-ink: #7fb0f0;
+  --accent-wash: #16233a;
+
+  --rail: #0c111c;
+  --rail-2: #141d2e;
+  --rail-ink: #ffffff;
+  --rail-ink-2: #8c99b1;
+  --rail-line: #1f2a3d;
+
+  --good-wash: #102915;
+  --good-ink: #62d162;
+  --warning-wash: #2c2312;
+  --warning-ink: #f3c257;
+  --serious-wash: #2e1d15;
+  --serious-ink: #f0a583;
+  --critical-wash: #2e1618;
+  --critical-ink: #f08b8b;
+
+  --grid: #212a3a;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, .45), 0 1px 2px rgba(0, 0, 0, .3);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, .5), 0 1px 3px rgba(0, 0, 0, .35);
+  --shadow-lg: 0 14px 34px rgba(0, 0, 0, .6), 0 2px 6px rgba(0, 0, 0, .4);
+  --shadow-pop: 0 18px 48px rgba(0, 0, 0, .7);
 }
 
-.gradient-text {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600 font-bold;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: var(--accent-wash);
+    color: var(--accent-ink);
+  }
+
+  /* Visible, consistent focus ring on every interactive element */
+  :where(button, a, input, textarea, select, [tabindex]):focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  h1, h2, h3, h4 {
+    letter-spacing: -0.011em;
+  }
 }
 
-.btn-premium {
-  @apply bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl 
-         hover:shadow-lg hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50;
+@layer components {
+  /* ---- Surfaces ---- */
+  .panel {
+    @apply bg-surface border border-line rounded-lg shadow-xs;
+  }
+
+  .panel-head {
+    @apply flex items-center justify-between gap-4 px-5 h-[52px] border-b border-line;
+  }
+
+  .panel-title {
+    @apply text-[13px] font-semibold text-ink tracking-[-0.005em];
+  }
+
+  /* ---- Typographic helpers ---- */
+  .eyebrow {
+    @apply text-2xs font-semibold uppercase tracking-[0.08em] text-ink-3;
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Hero/stat figures use proportional digits by design */
+  .figure {
+    font-variant-numeric: proportional-nums;
+    @apply font-semibold tracking-[-0.03em] text-ink;
+  }
+
+  /* ---- Form controls ---- */
+  .field {
+    @apply w-full bg-surface text-ink border border-line-strong rounded-md px-3 py-2 text-sm
+           placeholder:text-ink-3 transition-colors;
+  }
+  .field:hover {
+    border-color: var(--accent);
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-wash);
+  }
+
+  .data-row {
+    @apply flex items-center justify-between gap-4 py-2.5 border-b border-line last:border-0;
+  }
 }
 
-.input-premium {
-  @apply bg-white/50 border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none transition-all;
-}
-
-/* Custom Scrollbar */
+/* Recessive, always-present scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
+  height: 10px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-blue-200 rounded-full hover:bg-blue-300 transition-all;
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-3);
+  background-clip: content-box;
+}
+
+/* Range input, themed in both modes */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--track, var(--surface-3));
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -5px;
+  height: 16px;
+  width: 16px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-sm);
+  transition: transform .12s ease;
+}
+input[type='range']:active::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+input[type='range']::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--track, var(--surface-3));
+}
+input[type='range']::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  border: 2px solid var(--accent);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Print: isolate the appraisal memo so the workspace chrome does not
+   end up in the sanctioning file.
+   ------------------------------------------------------------------ */
+@media print {
+  body {
+    background: #ffffff;
+  }
+  body:has(#cam-print) > * {
+    visibility: hidden;
+  }
+  #cam-print,
+  #cam-print * {
+    visibility: visible;
+  }
+  #cam-print {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    padding: 0;
+    background: #ffffff;
+  }
+  #cam-print article {
+    max-width: none;
+    box-shadow: none;
+    padding: 0;
+  }
 }

@@ -1,14 +1,26 @@
-fastapi>=0.95.0,<0.100.0
-uvicorn
-python-multipart
-pytesseract
-pypdf2
-pandas
-python-docx
-fuzzywuzzy
-python-Levenshtein
-sqlalchemy
-pillow
-beautifulsoup4
-requests
-pydantic<2.0.0
+# --- Web framework -----------------------------------------------------------
+fastapi==0.121.2
+uvicorn[standard]==0.41.0
+python-multipart==0.0.22
+pydantic==2.13.1
+pydantic-settings==2.13.0
+email-validator==2.3.0
+
+# --- Persistence -------------------------------------------------------------
+SQLAlchemy==2.0.48
+alembic==1.18.1
+psycopg[binary]==3.2.13          # Postgres driver (psycopg3); unused on SQLite
+
+# --- Auth --------------------------------------------------------------------
+bcrypt==5.0.0
+PyJWT==2.12.1
+
+# --- Document ingestion ------------------------------------------------------
+pypdf==6.4.0                     # supersedes PyPDF2, which was archived in 2023
+pytesseract==0.3.13
+pillow==12.1.1
+pandas==3.0.1
+python-docx==1.2.0
+
+# --- Model-assisted extraction, drafting and chat -----------------------------
+anthropic==1.2.0

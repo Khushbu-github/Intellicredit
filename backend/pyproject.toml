@@ -1,0 +1,25 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+filterwarnings = [
+    "error::DeprecationWarning:app.*",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/llm/*", "alembic/*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4"]
+ignore = [
+    "E501",   # line length is handled by the formatter, not the linter
+    "B008",   # FastAPI's Depends()/File() defaults are the documented idiom
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402"]      # conftest sets env vars before importing the app
+"alembic/versions/*" = ["E501"]

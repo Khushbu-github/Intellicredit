@@ -1,24 +1,68 @@
-import React from 'react';
+import React, { useState } from 'react';
+
+import { api, saveBlob } from '../../lib/api';
+import Button from '../ui/Button';
+import { useToast } from '../ui/toastContext';
 
 interface DownloadButtonProps {
     appId: number;
-    url: string;
+    companyName: string;
+    size?: 'sm' | 'md' | 'lg';
+    variant?: 'primary' | 'secondary';
 }
 
-const DownloadButton: React.FC<DownloadButtonProps> = ({ appId, url }) => {
+/** Sanitises the borrower name into a filename-safe slug for the .docx. */
+function slug(name: string): string {
     return (
-        <div className="flex justify-center mt-8">
-            <a
-                href={url}
-                download={`CAM_${appId}.docx`}
-                className="btn-premium flex items-center space-x-3 px-10 py-4"
-            >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span className="text-lg">Download Professional CAM.docx</span>
-            </a>
-        </div>
+        name
+            .trim()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/\s+/g, '_')
+            .slice(0, 48) || 'Borrower'
+    );
+}
+
+/**
+ * The memo sits behind bearer auth, so a plain <a href> would be answered with
+ * a 401 - the browser does not attach the token. It is fetched as a blob and
+ * handed to the browser through a temporary object URL instead.
+ */
+const DownloadButton: React.FC<DownloadButtonProps> = ({
+    appId,
+    companyName,
+    size = 'md',
+    variant = 'primary',
+}) => {
+    const toast = useToast();
+    const [downloading, setDownloading] = useState(false);
+
+    const handleDownload = async () => {
+        setDownloading(true);
+        try {
+            const blob = await api.downloadCam(appId);
+            saveBlob(blob, `CAM_${slug(companyName)}_${String(appId).padStart(4, '0')}.docx`);
+        } catch (err) {
+            toast({
+                status: 'critical',
+                title: 'Could not download the memo',
+                detail: err instanceof Error ? err.message : 'The appraisal service did not respond.',
+            });
+        } finally {
+            setDownloading(false);
+        }
+    };
+
+    return (
+        <Button
+            onClick={handleDownload}
+            icon="download"
+            size={size}
+            variant={variant}
+            loading={downloading}
+            disabled={downloading}
+        >
+            {downloading ? 'Preparing…' : 'Download CAM (.docx)'}
+        </Button>
     );
 };
 

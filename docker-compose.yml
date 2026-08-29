@@ -1,22 +1,61 @@
+# Local development: hot reload on both sides, Postgres in a container so the
+# dev environment matches production instead of running on SQLite.
 
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: intellicredit
+      POSTGRES_PASSWORD: localdev
+      POSTGRES_DB: intellicredit
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U intellicredit"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   backend:
     build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
-      - "8001:8000"
+      - "8000:8000"
     volumes:
       - ./backend:/app
-      - ./files:/app/files
+      - uploads:/app/files
     environment:
-      - PYTHONUNBUFFERED=1
+      ENVIRONMENT: development
+      SECRET_KEY: local-development-only-secret
+      DATABASE_URL: postgresql+psycopg://intellicredit:localdev@db:5432/intellicredit
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+      # Optional: export ANTHROPIC_API_KEY in your shell to enable the
+      # model-assisted features. Absent, the app runs on its parsers alone.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
-  frontend: 
-    build: ./frontend
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8000/api
+    depends_on:
+      - backend
     ports:
       - "3000:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - CHOKIDAR_USEPOLLING=true
+      CHOKIDAR_USEPOLLING: "true"
     command: npm run dev -- --host --port 3000
+
+volumes:
+  pgdata:
+  uploads:

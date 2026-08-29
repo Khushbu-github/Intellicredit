@@ -2,9 +2,33 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>IntelliCredit</title>
+    <meta name="theme-color" content="#0d1626" />
+    <meta
+      name="description"
+      content="IntelliCredit — corporate credit appraisal workspace: document ingestion, 5Cs risk scoring, decisioning and CAM generation."
+    />
+    <title>IntelliCredit — Credit Appraisal Workspace</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      // Apply the stored theme before first paint to avoid a flash.
+      (function () {
+        try {
+          var t = localStorage.getItem('ic.theme');
+          if (t === 'dark' || t === 'light') {
+            document.documentElement.setAttribute('data-theme', t);
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
