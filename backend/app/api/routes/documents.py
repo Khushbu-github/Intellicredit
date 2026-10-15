@@ -6,11 +6,12 @@ static mount. Every download goes through this router, which resolves the
 document via the ownership-checked case dependency first.
 """
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, File, HTTPException, Request, Response, UploadFile, status
 from fastapi.responses import FileResponse
 
 from app.api.deps import DbSession, OwnedCase
 from app.config import settings
+from app.core.rate_limit import limiter
 from app.db.models import Document, utcnow
 from app.schemas.application import DocumentRead
 from app.services import storage
@@ -34,7 +35,10 @@ def _to_read_model(doc: Document) -> DocumentRead:
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
+@limiter.limit(settings.RATE_LIMIT_UPLOAD)
 def upload_files(
+    request: Request,
+    response: Response,
     case: OwnedCase,
     db: DbSession,
     files: list[UploadFile] = File(...),
@@ -50,6 +54,10 @@ def upload_files(
 
     Re-uploading a file with the same name replaces the earlier record rather
     than adding a duplicate, so the case cannot double-count one legal notice.
+
+    Rate limited per user: OCR and parsing are the most CPU-expensive work
+    the API does, and on a single small instance a determined uploader
+    would starve every other request.
     """
     if len(files) > settings.MAX_FILES_PER_REQUEST:
         raise HTTPException(

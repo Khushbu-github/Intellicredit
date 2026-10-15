@@ -15,6 +15,10 @@ os.environ["SECRET_KEY"] = "test-secret-key-not-used-anywhere-real"
 os.environ["DATABASE_URL"] = "sqlite://"          # in-memory
 os.environ["UPLOAD_DIR"] = tempfile.mkdtemp(prefix="intellicredit-test-")
 os.environ.pop("ANTHROPIC_API_KEY", None)          # tests never call the model
+# Off by default: the whole suite shares one TestClient address, so real
+# limits would throttle unrelated tests. test_rate_limiting.py turns the
+# limiter back on for the cases that are actually about throttling.
+os.environ["RATE_LIMIT_ENABLED"] = "false"
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
@@ -98,6 +102,25 @@ def case_id(client, auth_headers) -> int:
     )
     assert response.status_code == 201, response.text
     return response.json()["app_id"]
+
+
+@pytest.fixture
+def rate_limited():
+    """
+    Enable the limiter for one test and give it a clean counter.
+
+    The counters are process-global, so they must be reset on the way in
+    *and* out; leaking a used bucket would make these tests order-dependent.
+    """
+    from app.core.rate_limit import limiter
+
+    limiter.reset()
+    limiter.enabled = True
+    try:
+        yield limiter
+    finally:
+        limiter.enabled = False
+        limiter.reset()
 
 
 @pytest.fixture

@@ -15,6 +15,9 @@ psycopg[binary]==3.2.13          # Postgres driver (psycopg3); unused on SQLite
 bcrypt==5.0.0
 PyJWT==2.12.1
 
+# --- Abuse protection --------------------------------------------------------
+slowapi==0.1.10                  # in-process limiter; swap storage for Redis to scale out
+
 # --- Document ingestion ------------------------------------------------------
 pypdf==6.4.0                     # supersedes PyPDF2, which was archived in 2023
 pytesseract==0.3.13

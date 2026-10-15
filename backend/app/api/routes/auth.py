@@ -2,11 +2,12 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.api.deps import CurrentUser, DbSession
 from app.config import settings
+from app.core.rate_limit import limiter
 from app.core.security import create_access_token, hash_password, verify_password
 from app.db.models import User
 from app.schemas.auth import Token, UserCreate, UserRead
@@ -23,7 +24,17 @@ def _issue(user: User) -> Token:
 
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
-def register(payload: UserCreate, db: DbSession) -> Token:
+@limiter.limit(settings.RATE_LIMIT_REGISTER)
+def register(
+    request: Request, response: Response, payload: UserCreate, db: DbSession
+) -> Token:
+    """
+    Create an analyst account.
+
+    Rate limited per address: registration is open so that the deployed
+    demo can be tried without an invite, which also means it is the
+    cheapest way to farm accounts and reach the model-backed endpoints.
+    """
     email = payload.email.lower().strip()
 
     if db.query(User).filter(User.email == email).first():
@@ -44,7 +55,10 @@ def register(payload: UserCreate, db: DbSession) -> Token:
 
 
 @router.post("/login", response_model=Token)
+@limiter.limit(settings.RATE_LIMIT_LOGIN)
 def login(
+    request: Request,
+    response: Response,
     form: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: DbSession,
 ) -> Token:
@@ -52,6 +66,11 @@ def login(
     OAuth2 password flow: the client posts `username` (the email) and
     `password` as form fields, which is what FastAPI's own docs page and the
     standard bearer-token clients expect.
+
+    Rate limited per address so the endpoint cannot be used to guess
+    passwords; the limit is deliberately on the caller rather than the
+    account, so an attacker cannot lock a real user out by failing logins
+    against their address on purpose.
     """
     user = db.query(User).filter(User.email == form.username.lower().strip()).first()
 

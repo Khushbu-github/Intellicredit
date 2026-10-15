@@ -11,9 +11,12 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 from app.api.routes import applications, auth, cam, chat, documents, meta
 from app.config import settings
+from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,6 +33,13 @@ def create_app() -> FastAPI:
         ),
         version="3.0.0",
     )
+
+    # The limiter is attached to app.state because slowapi's decorator looks
+    # it up there at request time. The middleware applies the default limit to
+    # every route; the per-route decorators tighten it where abuse is costly.
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+    app.add_middleware(SlowAPIMiddleware)
 
     # Origins come from the environment, and preview deployments are matched by
     # regex, so a new Vercel preview URL does not require a backend redeploy.

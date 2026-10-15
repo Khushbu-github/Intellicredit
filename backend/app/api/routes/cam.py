@@ -6,11 +6,13 @@ always be produced - with template prose - whether or not a model is
 configured or reachable.
 """
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, Response, status
 from fastapi.responses import StreamingResponse
 
 from app.api.deps import DbSession, OwnedCase
 from app.cam.generator import generate_cam_docx
+from app.config import settings
+from app.core.rate_limit import limiter
 from app.db.models import Document, ScoreEvent
 from app.llm.client import is_enabled as llm_enabled
 from app.llm.narrative import draft_narrative
@@ -50,7 +52,10 @@ def _memo_payload(case, db: DbSession) -> dict:
 
 
 @router.post("/narrative")
-def generate_narrative(case: OwnedCase, db: DbSession) -> dict:
+@limiter.limit(settings.RATE_LIMIT_LLM)
+def generate_narrative(
+    request: Request, response: Response, case: OwnedCase, db: DbSession
+) -> dict:
     """
     Draft the memo's prose sections with the model and store them on the case.
 
